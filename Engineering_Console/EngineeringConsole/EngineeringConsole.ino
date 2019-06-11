@@ -1,10 +1,6 @@
 #include "console.h"
 Step step;
 
-// const int pushLight = 2;
-// const int pushButton = 3;
-// int pushButtonState = 0;
-
 char previousState = '0'; // the previous state for the mdiddle button to send
 
 void setup() {
@@ -31,28 +27,26 @@ void setup() {
 
 	Serial.begin(9600);
 	handshake();
-	// Serial.println("setup complete");
 	Serial.flush();
 }
 
 void loop() {
-	// put your main code here, to run repeatedly:
 	recieve();
 
 	if (repair) {
-		if(!get_step_complete(STEP_ONE)){
+		if (!get_step_complete(STEP_ONE)) {
 			int state = read_component(type1, seqPin1);
 			delay(5);
 			if_step_done(state, STEP_ONE);
 		}
 
-		if(!get_step_complete(STEP_TWO)){
+		if (!get_step_complete(STEP_TWO)) {
 			int state = read_component(type2, seqPin2);
 			delay(5);
 			if_step_done(state, STEP_TWO);
 		}
 
-		if(!get_step_complete(STEP_THREE)){
+		if (!get_step_complete(STEP_THREE)) {
 			int state = read_component(type3, seqPin3);
 			delay(5);
 			if_step_done(state, STEP_THREE);
@@ -64,43 +58,37 @@ void loop() {
 }
 
 /**
- * Determins what position the slide pot is at. 4 states on pots
- * @param  {int} state         The current state of the slide potentiometer
- * @return {int}     The level the current slide is at, or -1 for error
+ * Determins what position the older pots are at. 5 states on pots
+ * @param  {int} state         The current state of the older potentiometer
+ * @return {int}     The level the current older is at, or -1 for error
  */
 int other_pot(int state) {
 	int ret = 0;
 	if (state >= 0 && state < 25) {
-		// Serial.println("Dlevel 1");
 		ret = 1;
 
 	} else if (state > 30 && state < 55) {
-		// Serial.println("Dlevel 2");
 		ret = 2;
 
 	} else if (state > 125 && state < 145) {
-		// Serial.println("Dlevel 3");
 		ret = 3;
 
 	} else if (state > 215 && state < 230) {
-		// Serial.println("Dlevel 4");
 		ret = 4;
 
 	} else if (state > 240 && state <= 255) {
-		// Serial.println("Dlevel 5");
 		ret = 5;
 
 	} else {
-		// Serial.println("E:");
 		ret = -1;
 	}
 	delay(5);
-	// Serial.flush();
 	return ret;
 }
 
 
-/** Establishes contact with Unity. In dummy terms keeps sending Marco until
+/**
+ * Establishes contact with Unity. In dummy terms keeps sending Marco until
  * Unity sends out a Polo.
  */
 void handshake() {
@@ -120,36 +108,22 @@ void handshake() {
 int knob_pot(int state) {
 	int ret = 0;
 	if (state > 230 && state < 256) {
-		// if (state > 229 && state < 237) {
-		// Serial.flush();
-		// Serial.println("klevel 1");
 		ret = 1;
-		// } else if (state > 189 && state < 199) {
+
 	} else if (state > 210 && state < 220) {
-		// Serial.flush();
-		// Serial.println("klevel 2");
 		ret = 2;
 
-		// } else if (state > 155 && state < 165) {
 	} else if (state > 120 && state < 130) {
-		// Serial.flush();
-		// Serial.println("klevel 3");
 		ret = 3;
 
-		// } else if (state > 86 && state < 96) {
 	} else if (state > 35 && state < 50) {
-		// Serial.flush();
-		// Serial.println("klevel 4");
 		ret = 4;
 
-		// } else if (state > 43 && state < 53) {
 	} else if (state > 0 && state < 10) {
-		// Serial.flush();
-		// Serial.println("klevel 5");
 		ret = 5;
-	} 
+	}
+
 	delay(5);
-	// Serial.flush();
 	return ret;
 }
 
@@ -160,7 +134,6 @@ int knob_pot(int state) {
 void recieve() {
 	if (Serial.available() > 0) {
 		String message = Serial.readStringUntil('\n'); // read it and store it in val
-		// switch (message.charAt(0)) {
 		if (message != "P") {
 			if (message == "R") {
 				resetFunc();
@@ -184,8 +157,8 @@ void recieve() {
 
 				// get state looking for for pin
 				seq1State = (int)sequenceOne.charAt(2) - '0';
-				seq2State = (int)sequenceTwo.charAt(2) -'0';
-				seq3State = (int)sequenceThree.charAt(2) -'0';
+				seq2State = (int)sequenceTwo.charAt(2) - '0';
+				seq3State = (int)sequenceThree.charAt(2) - '0';
 
 				repair = true;
 			}
@@ -194,9 +167,9 @@ void recieve() {
 }
 
 /**
- * Takes in a message and determines its pin number assigned to it.			
+ * Takes in a message and determines its pin number assigned to it.
  * @param  {String}  message       The 3 character message split from Unity message
- * @return {int}     The pin number of the component 
+ * @return {int}     The pin number of the component
  */
 int name_to_pin(String message) {
 	// 3 char string
@@ -273,7 +246,7 @@ int read_component(char type, int pin) {
 	if (type == 'D') {
 		int val = analogRead(pin) / 4;
 		return other_pot(val);
-		// return knob_pot(val);
+
 	} else if (type == 'E') {
 		int val = analogRead(pin) / 4;
 		return knob_pot(val);
@@ -299,7 +272,7 @@ int read_component(char type, int pin) {
 
 /**
  * Retrieves the requested steps completion status.
- * @param  {Step}       step          The Step enum value for the sequence
+ * @param  {Step} step          The Step enum value for the sequence
  * @return {bool}           True if step completed, false otherwise
  */
 bool get_step_complete(Step step) {
@@ -321,28 +294,28 @@ bool get_step_complete(Step step) {
 
 /**
  * Determines if a step has been completed and sets the value accordingly.
- * @param  {int}       compState     The state of the component in the step
- * @param  {Step}      step          The Step enum value for the step
+ * @param  {int}  compState     The state of the component in the step
+ * @param  {Step} step          The Step enum value for the step
  */
 void if_step_done(int compState, Step step) {
-	if(step == STEP_ONE){
-	    if(compState == seq1State){
-	    	Serial.println("true1");
-	    	Serial.flush();
-	        sequenceOneComplete = true;
-	    }
-	} else if(step == STEP_TWO){
-	    if(compState == seq2State){
-	    	Serial.println("true2");
-	    	Serial.flush();
-	        sequenceTwoComplete = true;
-	    }
-	} else if(step == STEP_THREE){
-	    if(compState == seq3State){
-	    	Serial.println("true3");
-	    	Serial.flush();
-	        sequenceThreeComplete = true;
-	    }
+	if (step == STEP_ONE) {
+		if (compState == seq1State) {
+			Serial.println("true1");
+			Serial.flush();
+			sequenceOneComplete = true;
+		}
+	} else if (step == STEP_TWO) {
+		if (compState == seq2State) {
+			Serial.println("true2");
+			Serial.flush();
+			sequenceTwoComplete = true;
+		}
+	} else if (step == STEP_THREE) {
+		if (compState == seq3State) {
+			Serial.println("true3");
+			Serial.flush();
+			sequenceThreeComplete = true;
+		}
 	} else {
 	}
 }
@@ -355,16 +328,18 @@ void if_step_done(int compState, Step step) {
  */
 void if_sequence_complete() {
 	int val = digitalRead(F3);
-	if (sequenceOneComplete && sequenceTwoComplete && sequenceThreeComplete && val == HIGH && previousState != 'r') {
+	if (sequenceOneComplete && sequenceTwoComplete && sequenceThreeComplete &&
+	    val == HIGH && previousState != 'r') {
 		repair = false;
 		Serial.println("r");
 		Serial.flush();
 		previousState = 'r';
 		reset();
 	}
-	
-	if(val == HIGH && previousState != 'h' && (!sequenceOneComplete || !sequenceTwoComplete || !sequenceThreeComplete)){
-	    Serial.println("H");
+
+	if (val == HIGH && previousState != 'h' && (!sequenceOneComplete ||
+	                                            !sequenceTwoComplete || !sequenceThreeComplete)) {
+		Serial.println("H");
 		Serial.flush();
 		previousState = 'h';
 	}

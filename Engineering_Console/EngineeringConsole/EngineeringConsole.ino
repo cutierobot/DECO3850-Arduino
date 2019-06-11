@@ -1,7 +1,7 @@
 #include "console.h"
 Step step;
 
-char previousState = '0'; // the previous state for the mdiddle button to send
+char previousState = '0'; // the previous state for the middle button to send
 
 void setup() {
 	// put your setup code here, to run once:
